@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $photo['title']; ?> - VR全景图片浏览</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        #back-link {
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        #back-link:hover {
+            background: rgba(0,0,0,0.8);
+        }
+        #info-panel {
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            max-width: 300px;
+        }
+        #info-panel h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <a href="/" id="back-link">← 返回首页</a>
+        <div id="info-panel">
+            <h3><?php echo $photo['title']; ?></h3>
+            <p>作者: <?php echo $photo['username']; ?></p>
+            <p>浏览次数: <?php echo $photo['view_count']; ?></p>
+            <?php if (!empty($photo['description'])): ?>
+            <p>描述: <?php echo $photo['description']; ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <a-scene>
+        <a-sky src="/<?php echo $photo['file_path']; ?>" rotation="0 -130 0"></a-sky>
+        
+        <!-- 交互控制 -->
+        <a-entity laser-controls="hand: left"></a-entity>
+        <a-entity laser-controls="hand: right"></a-entity>
+        
+        <!-- 相机设置 -->
+        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+    
+    <script>
+        // 页面加载完成后隐藏地址栏（移动端）
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.scrollTo(0, 1);
+            }, 100);
+        });
+        
+        // 添加键盘控制
+        document.addEventListener('keydown', function(event) {
+            var camera = document.querySelector('[camera]');
+            var position = camera.getAttribute('position');
+            
+            switch(event.keyCode) {
+                case 37: // 左箭头
+                    camera.setAttribute('rotation', {y: camera.getAttribute('rotation').y - 5});
+                    break;
+                case 39: // 右箭头
+                    camera.setAttribute('rotation', {y: camera.getAttribute('rotation').y + 5});
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

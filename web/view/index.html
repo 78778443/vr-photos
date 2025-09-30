@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR全景图片浏览系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://picsum.photos/1200/600?image=1069');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            margin-bottom: 50px;
+        }
+        .photo-card {
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .photo-card:hover {
+            transform: translateY(-5px);
+        }
+        .photo-thumb {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">VR全景图片浏览系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/photo">全景图片</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/photo/my">我的图片</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/photo/upload">上传图片</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user/logout">退出</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user/login">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user/register">注册</a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主页横幅 -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4">探索全景世界</h1>
+            <p class="lead">使用VR设备或鼠标拖拽，360度全方位浏览精彩图片</p>
+            <a href="/photo" class="btn btn-primary btn-lg">开始浏览</a>
+        </div>
+    </div>
+
+    <!-- 最新上传 -->
+    <div class="container mb-5">
+        <h2 class="mb-4">最新上传</h2>
+        <div class="row">
+            <?php if (count($latestPhotos) > 0): ?>
+                <?php foreach ($latestPhotos as $photo): ?>
+                <div class="col-md-4 col-sm-6">
+                    <div class="card photo-card">
+                        <img src="/<?php echo $photo['thumbnail_path']; ?>" class="card-img-top photo-thumb" alt="<?php echo $photo['title']; ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $photo['title']; ?></h5>
+                            <p class="card-text"><?php echo mb_substr($photo['description'], 0, 50) . (mb_strlen($photo['description']) > 50 ? '...' : ''); ?></p>
+                            <a href="/view/<?php echo $photo['id']; ?>" class="btn btn-primary">查看全景</a>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        暂无全景图片
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 热门图片 -->
+    <div class="container mb-5">
+        <h2 class="mb-4">热门图片</h2>
+        <div class="row">
+            <?php if (count($popularPhotos) > 0): ?>
+                <?php foreach ($popularPhotos as $photo): ?>
+                <div class="col-md-4 col-sm-6">
+                    <div class="card photo-card">
+                        <img src="/<?php echo $photo['thumbnail_path']; ?>" class="card-img-top photo-thumb" alt="<?php echo $photo['title']; ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $photo['title']; ?></h5>
+                            <p class="card-text"><?php echo mb_substr($photo['description'], 0, 50) . (mb_strlen($photo['description']) > 50 ? '...' : ''); ?></p>
+                            <a href="/view/<?php echo $photo['id']; ?>" class="btn btn-primary">查看全景</a>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        暂无热门图片
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p>&copy; 2025 VR全景图片浏览系统. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

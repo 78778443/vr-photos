@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传全景图片 - VR全景图片浏览系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">VR全景图片浏览系统</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">首页</a>
+                <a class="nav-link" href="/photo/my">我的图片</a>
+                <a class="nav-link active" href="/photo/upload">上传图片</a>
+                <a class="nav-link" href="/user/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card mt-5">
+                    <div class="card-header">
+                        <h3 class="text-center">上传全景图片</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">标题</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">描述</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="photo" class="form-label">全景图片</label>
+                                <input type="file" class="form-control" id="photo" name="photo" accept=".jpg,.jpeg,.png" required>
+                                <div class="form-text">支持JPG、PNG格式的全景图片</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="is_public" class="form-label">是否公开</label>
+                                <select class="form-select" id="is_public" name="is_public">
+                                    <option value="1" selected>公开</option>
+                                    <option value="0">私有</option>
+                                </select>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">上传</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: '/photo/upload',
+                    method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.code === 200) {
+                            alert('上传成功');
+                            window.location.href = '/photo/my';
+                        } else {
+                            alert(response.msg);
+                        }
+                    },
+                    error: function() {
+                        alert('请求失败，请重试');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
