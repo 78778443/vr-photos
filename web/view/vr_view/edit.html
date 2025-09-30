@@ -62,8 +62,8 @@
             clear: both;
         }
         
-        /* 热点样式 */
-        .hotspot-edit {
+        /* 预览热点样式 */
+        .hotspot-preview {
             cursor: pointer;
             width: 40px;
             height: 40px;
@@ -77,7 +77,7 @@
             align-items: center;
         }
         
-        .hotspot-edit::before {
+        .hotspot-preview::before {
             content: "";
             width: 10px;
             height: 10px;
@@ -101,7 +101,7 @@
                 <label class="form-label">热点标题</label>
                 <input type="text" class="form-control" id="hotspot-title" placeholder="可选">
             </div>
-            <button class="btn btn-primary w-100" id="add-hotspot">添加热点</button>
+            <button class="btn btn-primary w-100" id="add-hotspot">添加热点 (点击场景中位置)</button>
             
             <h4 class="mt-4">已添加的热点</h4>
             <div id="hotspots-list">
@@ -116,10 +116,36 @@
     </div>
     
     <a-scene id="scene" cursor="rayOrigin: mouse">
-        <a-sky src="/<?php echo $photo['file_path']; ?>" rotation="0 -130 0"></a-sky>
+        <a-assets>
+            <img id="panorama" src="/<?php echo $photo['file_path']; ?>">
+        </a-assets>
+        
+        <a-sky src="#panorama" rotation="0 -130 0"></a-sky>
+        
+        <!-- 已存在的热点 -->
+        <?php foreach ($hotspots as $hotspot): ?>
+        <a-entity position="<?php echo \app\VrUtils::convertLatLonToVector3($hotspot['latitude'], $hotspot['longitude']); ?>"
+                  geometry="primitive: sphere; radius: 0.5;"
+                  material="color: #ff4444; shader: flat;"
+                  scale="0.3 0.3 0.3">
+        </a-entity>
+        <?php endforeach; ?>
+        
+        <!-- 临时热点预览 -->
+        <a-entity id="temp-hotspot" visible="false"
+                  geometry="primitive: sphere; radius: 0.5;"
+                  material="color: #44ff44; shader: flat;"
+                  scale="0.3 0.3 0.3">
+        </a-entity>
         
         <!-- 相机设置 -->
-        <a-entity camera look-controls position="0 1.6 0" id="camera"></a-entity>
+        <a-entity camera look-controls position="0 1.6 0" id="camera">
+            <a-entity cursor="fuse: true; fuseTimeout: 500"
+                      position="0 0 -1"
+                      geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                      material="color: #ff4444; shader: flat">
+            </a-entity>
+        </a-entity>
     </a-scene>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -131,6 +157,7 @@
             var targetPhotoSelect = document.getElementById('target-photo');
             var hotspotTitleInput = document.getElementById('hotspot-title');
             var addHotspotBtn = document.getElementById('add-hotspot');
+            var tempHotspot = document.getElementById('temp-hotspot');
             
             // 获取用户的所有图片
             $.ajax({
@@ -152,6 +179,23 @@
                 }
             });
             
+            // 用于存储点击位置
+            var clickPosition = null;
+            var clickRotation = null;
+            
+            // 点击场景获取位置
+            scene.addEventListener('click', function (evt) {
+                if (evt.detail.intersectedEl && evt.detail.intersectedEl.isEqualNode(document.querySelector('a-sky'))) {
+                    // 获取点击位置
+                    clickPosition = evt.detail.intersection.point;
+                    clickRotation = camera.getAttribute('rotation');
+                    
+                    // 显示临时热点
+                    tempHotspot.setAttribute('position', clickPosition);
+                    tempHotspot.setAttribute('visible', true);
+                }
+            });
+            
             // 添加热点按钮事件
             addHotspotBtn.addEventListener('click', function() {
                 var targetPhotoId = targetPhotoSelect.value;
@@ -162,13 +206,13 @@
                     return;
                 }
                 
-                // 获取相机当前朝向
-                var rotation = camera.getAttribute('rotation');
+                if (!clickPosition) {
+                    alert('请先在场景中点击一个位置');
+                    return;
+                }
                 
-                // 简单转换为经纬度（实际应用中可能需要更精确的计算）
-                var latitude = Math.max(-90, Math.min(90, rotation.x));
-                var longitude = ((rotation.y % 360) + 360) % 360;
-                if (longitude > 180) longitude -= 360;
+                // 将3D坐标转换为经纬度
+                var latLon = convertVector3ToLatLon(clickPosition);
                 
                 // 发送添加热点请求
                 $.ajax({
@@ -177,8 +221,8 @@
                     data: {
                         photo_id: <?php echo $photo['id']; ?>,
                         target_photo_id: targetPhotoId,
-                        latitude: latitude,
-                        longitude: longitude,
+                        latitude: latLon.lat,
+                        longitude: latLon.lon,
                         title: title
                     },
                     dataType: 'json',
@@ -196,6 +240,20 @@
                     }
                 });
             });
+            
+            // 将3D向量坐标转换为经纬度
+            function convertVector3ToLatLon(position) {
+                // 调整坐标系
+                var x = position.x;
+                var y = position.y;
+                var z = -position.z;
+                
+                var radius = Math.sqrt(x*x + y*y + z*z);
+                var lat = Math.asin(y / radius) * 180 / Math.PI;
+                var lon = Math.atan2(z, x) * 180 / Math.PI;
+                
+                return { lat: lat, lon: lon };
+            }
             
             // 删除热点按钮事件
             document.querySelectorAll('.delete-hotspot').forEach(function(button) {

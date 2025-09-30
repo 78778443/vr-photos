@@ -52,7 +52,6 @@ CREATE TABLE `vr_hotspots` (
   `latitude` float NOT NULL COMMENT '纬度(-90到90)',
   `longitude` float NOT NULL COMMENT '经度(-180到180)',
   `title` varchar(255) DEFAULT NULL COMMENT '热点标题',
-  `description` text COMMENT '热点描述',
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE,
