@@ -3,15 +3,17 @@
 namespace app\controller;
 
 use app\BaseController;
+use app\Request;
 use think\facade\View;
 use think\facade\Cookie;
 use think\facade\Db;
 
-class View extends BaseController
+class VrView extends BaseController
 {
     // 查看全景图片
-    public function index($id)
+    public function index(Request $request)
     {
+        $id = $request->param('id');
         // 查询图片信息
         $photo = Db::name('vr_photos')
             ->alias('p')
@@ -41,6 +43,6 @@ class View extends BaseController
         // 增加浏览次数
         Db::name('vr_photos')->where('id', $id)->inc('view_count')->update();
         
-        return View::fetch('view/index', ['photo' => $photo]);
+        return View::fetch('vr_view/index', ['photo' => $photo]);
     }
 }

@@ -7,6 +7,7 @@ use think\facade\View;
 use think\facade\Cookie;
 use think\facade\Db;
 use think\facade\Upload;
+use think\facade\Config;
 
 class Photo extends BaseController
 {
@@ -29,17 +30,36 @@ class Photo extends BaseController
             // 获取上传的文件
             $file = $this->request->file('photo');
             
-            if (empty($title) || !$file) {
-                return json(['code' => 400, 'msg' => '请填写完整信息']);
+            // 检查标题
+            if (empty($title)) {
+                return json(['code' => 400, 'msg' => '请填写标题']);
+            }
+            
+            // 检查文件
+            if (empty($file)) {
+                return json(['code' => 400, 'msg' => '请选择要上传的图片文件']);
+            }
+            
+            // 验证文件是否有效
+            if (!$file->isValid()) {
+                return json(['code' => 400, 'msg' => '上传的文件无效']);
+            }
+            
+            // 检查文件大小
+            $fileSize = $file->getSize();
+            if ($fileSize == 0) {
+                return json(['code' => 400, 'msg' => '上传的文件为空']);
+            }
+            
+            // 获取配置的最大文件大小
+            $maxSize = Config::get('app.upload.max_size', 50 * 1024 * 1024);
+            if ($fileSize > $maxSize) {
+                $maxSizeMB = round($maxSize / 1024 / 1024, 2);
+                return json(['code' => 400, 'msg' => '文件大小超过限制，最大允许' . $maxSizeMB . 'MB']);
             }
             
             try {
-                // 移动上传的文件到指定目录
-                $uploadDir = root_path() . 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'vr_photos';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-                
+                // 使用ThinkPHP的文件系统保存文件
                 $savename = \think\facade\Filesystem::putFile('vr_photos', $file);
                 $filePath = 'uploads/' . $savename;
                 
@@ -164,7 +184,7 @@ class Photo extends BaseController
         }
         
         // 生成分享链接
-        $shareLink = url('/view/' . $id, '', false, true);
+        $shareLink = url('/VrView/' . $id, '', false, true);
         
         return json([
             'code' => 200,

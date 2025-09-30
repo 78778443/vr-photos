@@ -50,7 +50,7 @@
                     <div class="card-body">
                         <h5 class="card-title"><?php echo $photo['title']; ?></h5>
                         <p class="card-text"><?php echo mb_substr($photo['description'], 0, 50) . (mb_strlen($photo['description']) > 50 ? '...' : ''); ?></p>
-                        <a href="/view/<?php echo $photo['id']; ?>" class="btn btn-primary">查看全景</a>
+                        <a href="/VrView/index/id/<?php echo $photo['id']; ?>" class="btn btn-primary">查看全景</a>
                         <button class="btn btn-outline-secondary btn-sm share-btn" data-id="<?php echo $photo['id']; ?>">分享</button>
                     </div>
                 </div>

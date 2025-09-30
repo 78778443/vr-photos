@@ -27,4 +27,10 @@ return [
     'error_message'    => '页面错误！请稍后再试～',
     // 显示错误信息
     'show_error_msg'   => false,
+    
+    // 文件上传相关配置
+    'upload'           => [
+        'max_size'     => 50 * 1024 * 1024, // 50MB
+        'file_types'   => ['jpg', 'jpeg', 'png', 'gif'], // 允许的文件类型
+    ],
 ];
