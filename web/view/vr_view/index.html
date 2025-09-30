@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $photo['title']; ?> - VR全景图片浏览</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <link href="/css/style.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -25,6 +26,7 @@
             text-decoration: none;
             display: inline-block;
             margin-bottom: 10px;
+            transition: background 0.2s;
         }
         #back-link:hover {
             background: rgba(0,0,0,0.8);
