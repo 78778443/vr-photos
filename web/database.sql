@@ -57,3 +57,26 @@ CREATE TABLE `vr_hotspots` (
   FOREIGN KEY (`photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`target_photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE
 );
+
+-- 相册表
+CREATE TABLE `albums` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `cover_photo_id` int(11) DEFAULT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`cover_photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE SET NULL
+);
+
+-- 全景图片相册关联表
+CREATE TABLE `vr_photo_albums` (
+  `photo_id` int(11) NOT NULL,
+  `album_id` int(11) NOT NULL,
+  PRIMARY KEY (`photo_id`, `album_id`),
+  FOREIGN KEY (`photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`album_id`) REFERENCES `albums`(`id`) ON DELETE CASCADE
+);

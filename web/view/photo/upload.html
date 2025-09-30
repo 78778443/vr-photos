@@ -66,6 +66,11 @@
                                 <textarea class="form-control" id="description_template" rows="3" placeholder="例如：拍摄于XXXX年XX月XX日"></textarea>
                             </div>
                             <div class="mb-3">
+                                <label for="tags_template" class="form-label">标签</label>
+                                <input type="text" class="form-control" id="tags_template" placeholder="例如：旅行,风景,自然（多个标签用逗号分隔）">
+                                <div class="form-text">为所有图片添加标签，多个标签请用逗号分隔</div>
+                            </div>
+                            <div class="mb-3">
                                 <label for="is_public_batch" class="form-label">是否公开</label>
                                 <select class="form-select" id="is_public_batch">
                                     <option value="1" selected>公开</option>
@@ -245,6 +250,7 @@
                 // 获取批量设置
                 const titlePrefix = $('#title_prefix').val();
                 const descriptionTemplate = $('#description_template').val();
+                const tagsTemplate = $('#tags_template').val();
                 const isPublic = $('#is_public_batch').val();
                 
                 // 初始化进度显示
@@ -266,7 +272,7 @@
                 
                 // 并行上传文件
                 const uploadPromises = filesToUpload.map((file, index) => {
-                    return uploadFile(file, index, titlePrefix, descriptionTemplate, isPublic);
+                    return uploadFile(file, index, titlePrefix, descriptionTemplate, tagsTemplate, isPublic);
                 });
                 
                 // 监控整体进度
@@ -298,7 +304,7 @@
             }
 
             // 上传单个文件
-            function uploadFile(file, index, titlePrefix, descriptionTemplate, isPublic) {
+            function uploadFile(file, index, titlePrefix, descriptionTemplate, tagsTemplate, isPublic) {
                 return new Promise((resolve) => {
                     const formData = new FormData();
                     
@@ -313,6 +319,7 @@
                     
                     formData.append('title', title);
                     formData.append('description', descriptionTemplate);
+                    formData.append('tags', tagsTemplate);
                     formData.append('is_public', isPublic);
                     formData.append('photo', file);
                     

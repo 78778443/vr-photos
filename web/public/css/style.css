@@ -169,6 +169,41 @@ body {
   font-size: 0.9rem;
 }
 
+/* 相册卡片 */
+.album-card {
+  height: 100%;
+  border: none;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.album-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,.15);
+}
+
+.album-cover {
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.album-cover img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.album-cover .no-cover {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
 /* 批量上传区域 */
 #drop-zone {
   border: 2px dashed #ccc;

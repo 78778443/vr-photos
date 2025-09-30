@@ -27,6 +27,7 @@ class Photo extends BaseController
             $title = $this->request->post('title');
             $description = $this->request->post('description');
             $isPublic = $this->request->post('is_public', 1);
+            $tags = $this->request->post('tags'); // 获取标签
             
             // 获取上传的文件
             $file = $this->request->file('photo');
@@ -81,23 +82,39 @@ class Photo extends BaseController
                 // 尝试生成WebP格式缩略图
                 $optimizer->generateWebPThumbnail();
                 
-                // 保存到数据库
-                $data = [
-                    'user_id' => $userInfo['user_id'],
-                    'title' => $title,
-                    'description' => $description,
-                    'file_path' => $filePath,
-                    'thumbnail_path' => $thumbnailPath,
-                    'is_public' => $isPublic,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-                
-                $photoId = Db::name('vr_photos')->insertGetId($data);
-                
-                if ($photoId) {
-                    return json(['code' => 200, 'msg' => '上传成功', 'redirect' => '/photo/my']);
-                } else {
-                    return json(['code' => 500, 'msg' => '上传失败']);
+                // 开始事务
+                Db::startTrans();
+                try {
+                    // 保存到数据库
+                    $data = [
+                        'user_id' => $userInfo['user_id'],
+                        'title' => $title,
+                        'description' => $description,
+                        'file_path' => $filePath,
+                        'thumbnail_path' => $thumbnailPath,
+                        'is_public' => $isPublic,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $photoId = Db::name('vr_photos')->insertGetId($data);
+                    
+                    // 处理标签
+                    if ($photoId && !empty($tags)) {
+                        $this->processTags($photoId, $tags);
+                    }
+                    
+                    // 提交事务
+                    Db::commit();
+                    
+                    if ($photoId) {
+                        return json(['code' => 200, 'msg' => '上传成功', 'redirect' => '/photo/my']);
+                    } else {
+                        return json(['code' => 500, 'msg' => '上传失败']);
+                    }
+                } catch (\Exception $e) {
+                    // 回滚事务
+                    Db::rollback();
+                    throw $e;
                 }
             } catch (\Exception $e) {
                 return json(['code' => 500, 'msg' => '上传失败：' . $e->getMessage()]);
@@ -122,6 +139,7 @@ class Photo extends BaseController
             $title = $this->request->post('title');
             $description = $this->request->post('description');
             $isPublic = $this->request->post('is_public', 1);
+            $tags = $this->request->post('tags'); // 获取标签
             
             // 获取上传的文件
             $file = $this->request->file('photo');
@@ -176,23 +194,39 @@ class Photo extends BaseController
                 // 尝试生成WebP格式缩略图
                 $optimizer->generateWebPThumbnail();
                 
-                // 保存到数据库
-                $data = [
-                    'user_id' => $userInfo['user_id'],
-                    'title' => $title,
-                    'description' => $description,
-                    'file_path' => $filePath,
-                    'thumbnail_path' => $thumbnailPath,
-                    'is_public' => $isPublic,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-                
-                $photoId = Db::name('vr_photos')->insertGetId($data);
-                
-                if ($photoId) {
-                    return json(['code' => 200, 'msg' => '上传成功']);
-                } else {
-                    return json(['code' => 500, 'msg' => '上传失败']);
+                // 开始事务
+                Db::startTrans();
+                try {
+                    // 保存到数据库
+                    $data = [
+                        'user_id' => $userInfo['user_id'],
+                        'title' => $title,
+                        'description' => $description,
+                        'file_path' => $filePath,
+                        'thumbnail_path' => $thumbnailPath,
+                        'is_public' => $isPublic,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $photoId = Db::name('vr_photos')->insertGetId($data);
+                    
+                    // 处理标签
+                    if ($photoId && !empty($tags)) {
+                        $this->processTags($photoId, $tags);
+                    }
+                    
+                    // 提交事务
+                    Db::commit();
+                    
+                    if ($photoId) {
+                        return json(['code' => 200, 'msg' => '上传成功']);
+                    } else {
+                        return json(['code' => 500, 'msg' => '上传失败']);
+                    }
+                } catch (\Exception $e) {
+                    // 回滚事务
+                    Db::rollback();
+                    throw $e;
                 }
             } catch (\Exception $e) {
                 return json(['code' => 500, 'msg' => '上传失败：' . $e->getMessage()]);
@@ -200,6 +234,40 @@ class Photo extends BaseController
         }
         
         return json(['code' => 400, 'msg' => '无效的请求']);
+    }
+    
+    // 处理标签
+    private function processTags($photoId, $tags)
+    {
+        // 清理标签输入
+        $tagArray = array_filter(array_unique(array_map('trim', explode(',', $tags))));
+        
+        foreach ($tagArray as $tagName) {
+            if (empty($tagName)) {
+                continue;
+            }
+            
+            // 查找或创建标签
+            $tag = Db::name('tags')->where('name', $tagName)->find();
+            if (!$tag) {
+                $tagId = Db::name('tags')->insertGetId(['name' => $tagName]);
+            } else {
+                $tagId = $tag['id'];
+            }
+            
+            // 关联图片和标签
+            $exists = Db::name('vr_photo_tags')
+                ->where('photo_id', $photoId)
+                ->where('tag_id', $tagId)
+                ->find();
+            
+            if (!$exists) {
+                Db::name('vr_photo_tags')->insert([
+                    'photo_id' => $photoId,
+                    'tag_id' => $tagId
+                ]);
+            }
+        }
     }
     
     // 全景图片列表页面
@@ -233,6 +301,20 @@ class Photo extends BaseController
             ->where('user_id', $userInfo['user_id'])
             ->order('created_at', 'desc')
             ->paginate(12);
+        
+        // 获取图片标签信息
+        $photoList = $photos->items();
+        foreach ($photoList as &$photo) {
+            $photo['tags'] = Db::name('tags')
+                ->alias('t')
+                ->join('vr_photo_tags pt', 't.id = pt.tag_id')
+                ->where('pt.photo_id', $photo['id'])
+                ->column('t.name');
+        }
+        
+        // 重新构造分页对象
+        $photos = $photos->toArray();
+        $photos['data'] = $photoList;
         
         return View::fetch('photo/my', ['photos' => $photos]);
     }

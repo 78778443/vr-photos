@@ -6,6 +6,18 @@
     <title>我的全景图片 - VR全景图片浏览系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .photo-tags {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+        }
+        .photo-tags .badge {
+            font-size: 0.7em;
+            margin-right: 3px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -15,6 +27,7 @@
                 <a class="nav-link" href="/">首页</a>
                 <a class="nav-link active" href="/photo/my">我的图片</a>
                 <a class="nav-link" href="/photo/upload">上传图片</a>
+                <a class="nav-link" href="/album">我的相册</a>
                 <?php 
                 // 检查Cookie中的用户认证信息
                 $userAuth = isset($_COOKIE['user_auth']) ? $_COOKIE['user_auth'] : null;
@@ -33,10 +46,10 @@
         <h1 class="text-center my-4">我的全景图片</h1>
         
         <div class="row">
-            <?php if (count($photos) > 0): ?>
-                <?php foreach ($photos as $photo): ?>
+            <?php if (count($photos['data']) > 0): ?>
+                <?php foreach ($photos['data'] as $photo): ?>
                 <div class="col-md-4 col-sm-6">
-                    <div class="card photo-card">
+                    <div class="card photo-card position-relative">
                         <img data-src="/<?php echo $photo['thumbnail_path']; ?>" class="card-img-top photo-thumb lazy" alt="<?php echo $photo['title']; ?>">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo $photo['title']; ?></h5>
@@ -45,6 +58,13 @@
                             <button class="btn btn-outline-secondary btn-sm share-btn" data-id="<?php echo $photo['id']; ?>">分享</button>
                             <button class="btn btn-danger btn-sm delete-btn" data-id="<?php echo $photo['id']; ?>">删除</button>
                         </div>
+                        <?php if (!empty($photo['tags'])): ?>
+                        <div class="photo-tags">
+                            <?php foreach ($photo['tags'] as $tag): ?>
+                            <span class="badge bg-secondary"><?php echo $tag; ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -60,7 +80,30 @@
         <!-- 分页 -->
         <div class="row">
             <div class="col-12">
-                <?php echo $photos->render(); ?>
+                <?php 
+                // 简单的分页显示
+                if (isset($photos['last_page']) && $photos['last_page'] > 1) {
+                    echo '<nav><ul class="pagination justify-content-center">';
+                    
+                    // 上一页
+                    if ($photos['current_page'] > 1) {
+                        echo '<li class="page-item"><a class="page-link" href="?page=' . ($photos['current_page'] - 1) . '">上一页</a></li>';
+                    }
+                    
+                    // 页码
+                    for ($i = 1; $i <= $photos['last_page']; $i++) {
+                        $active = ($i == $photos['current_page']) ? 'active' : '';
+                        echo '<li class="page-item ' . $active . '"><a class="page-link" href="?page=' . $i . '">' . $i . '</a></li>';
+                    }
+                    
+                    // 下一页
+                    if ($photos['current_page'] < $photos['last_page']) {
+                        echo '<li class="page-item"><a class="page-link" href="?page=' . ($photos['current_page'] + 1) . '">下一页</a></li>';
+                    }
+                    
+                    echo '</ul></nav>';
+                }
+                ?>
             </div>
         </div>
     </div>
