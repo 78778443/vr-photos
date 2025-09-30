@@ -41,6 +41,29 @@
         #info-panel h3 {
             margin-top: 0;
         }
+        /* 添加缩放控制按钮样式 */
+        #zoom-controls {
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        #zoom-controls button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        #zoom-controls button:hover {
+            background: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 <body>
@@ -54,9 +77,15 @@
             <p>描述: <?php echo $photo['description']; ?></p>
             <?php endif; ?>
         </div>
+        <!-- 添加缩放控制 -->
+        <div id="zoom-controls">
+            <button id="zoom-in" title="放大">+</button>
+            <button id="zoom-out" title="缩小">-</button>
+            <button id="zoom-reset" title="重置">↺</button>
+        </div>
     </div>
     
-    <a-scene>
+    <a-scene id="scene">
         <a-sky src="/<?php echo $photo['file_path']; ?>" rotation="0 -130 0"></a-sky>
         
         <!-- 交互控制 -->
@@ -64,7 +93,7 @@
         <a-entity laser-controls="hand: right"></a-entity>
         
         <!-- 相机设置 -->
-        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+        <a-entity camera look-controls position="0 1.6 0" id="camera"></a-entity>
     </a-scene>
     
     <script>
@@ -88,6 +117,107 @@
                     camera.setAttribute('rotation', {y: camera.getAttribute('rotation').y + 5});
                     break;
             }
+        });
+        
+        // 添加缩放功能
+        document.addEventListener('DOMContentLoaded', function() {
+            var scene = document.querySelector('#scene');
+            var camera = document.querySelector('#camera');
+            var zoomInBtn = document.querySelector('#zoom-in');
+            var zoomOutBtn = document.querySelector('#zoom-out');
+            var zoomResetBtn = document.querySelector('#zoom-reset');
+            
+            // 初始相机参数
+            var initialPosition = {x: 0, y: 1.6, z: 0};
+            var currentPosition = {...initialPosition};
+            var zoomStep = 5.0; // 增加步长以获得更好的缩放体验
+            var wheelZoomStep = 7; // 鼠标滚轮缩放步长
+            
+            // 更新相机位置
+            function updateCameraPosition() {
+                camera.setAttribute('position', currentPosition);
+            }
+            
+            // 放大
+            function zoomIn(step = zoomStep) {
+                currentPosition.z -= step;
+                updateCameraPosition();
+            }
+            
+            // 缩小
+            function zoomOut(step = zoomStep) {
+                currentPosition.z += step;
+                updateCameraPosition();
+            }
+            
+            // 重置
+            function resetZoom() {
+                currentPosition = {...initialPosition};
+                updateCameraPosition();
+            }
+            
+            // 绑定按钮事件
+            zoomInBtn.addEventListener('click', function() {
+                zoomIn();
+            });
+            
+            zoomOutBtn.addEventListener('click', function() {
+                zoomOut();
+            });
+            
+            zoomResetBtn.addEventListener('click', resetZoom);
+            
+            // 鼠标滚轮缩放 - 使用更大的步长
+            scene.addEventListener('wheel', function(event) {
+                if (event.deltaY < 0) {
+                    zoomIn(wheelZoomStep);
+                } else {
+                    zoomOut(wheelZoomStep);
+                }
+                event.preventDefault();
+            });
+            
+            // 键盘缩放 (+/- 键)
+            document.addEventListener('keydown', function(event) {
+                switch(event.key) {
+                    case '+':
+                    case '=':
+                        zoomIn();
+                        break;
+                    case '-':
+                    case '_':
+                        zoomOut();
+                        break;
+                    case '0':
+                        resetZoom();
+                        break;
+                }
+            });
+            
+            // 添加连续缩放功能 - 当按住按钮时持续缩放
+            var zoomInterval;
+            
+            zoomInBtn.addEventListener('mousedown', function() {
+                zoomInterval = setInterval(function() {
+                    zoomIn(zoomStep * 0.1); // 连续缩放使用较小步长
+                }, 50);
+            });
+            
+            zoomOutBtn.addEventListener('mousedown', function() {
+                zoomInterval = setInterval(function() {
+                    zoomOut(zoomStep * 0.1); // 连续缩放使用较小步长
+                }, 50);
+            });
+            
+            // 停止连续缩放
+            function stopZoom() {
+                clearInterval(zoomInterval);
+            }
+            
+            zoomInBtn.addEventListener('mouseup', stopZoom);
+            zoomInBtn.addEventListener('mouseleave', stopZoom);
+            zoomOutBtn.addEventListener('mouseup', stopZoom);
+            zoomOutBtn.addEventListener('mouseleave', stopZoom);
         });
     </script>
 </body>
