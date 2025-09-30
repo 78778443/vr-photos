@@ -62,27 +62,32 @@
             clear: both;
         }
         
+        /* 图标选择样式 */
+        .icon-option {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .icon-option.selected {
+            border-color: #007bff;
+            background-color: rgba(0,123,255,0.2);
+        }
+        
         /* 预览热点样式 */
         .hotspot-preview {
             cursor: pointer;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255, 0, 0, 0.5);
-            border-radius: 50%;
-            border: 2px solid white;
             position: absolute;
             transform: translate(-50%, -50%);
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-        
-        .hotspot-preview::before {
-            content: "";
-            width: 10px;
-            height: 10px;
-            background-color: white;
-            border-radius: 50%;
         }
     </style>
 </head>
@@ -101,6 +106,19 @@
                 <label class="form-label">热点标题</label>
                 <input type="text" class="form-control" id="hotspot-title" placeholder="可选">
             </div>
+            
+            <div class="mb-3">
+                <label class="form-label">热点图标</label>
+                <div>
+                    <div class="icon-option selected" data-icon="circle">●</div>
+                    <div class="icon-option" data-icon="arrow">→</div>
+                    <div class="icon-option" data-icon="star">★</div>
+                    <div class="icon-option" data-icon="plus">+</div>
+                    <div class="icon-option" data-icon="square">■</div>
+                </div>
+                <input type="hidden" id="hotspot-icon" value="circle">
+            </div>
+            
             <button class="btn btn-primary w-100" id="add-hotspot">添加热点 (点击场景中位置)</button>
             
             <h4 class="mt-4">已添加的热点</h4>
@@ -156,8 +174,20 @@
             var camera = document.querySelector('#camera');
             var targetPhotoSelect = document.getElementById('target-photo');
             var hotspotTitleInput = document.getElementById('hotspot-title');
+            var hotspotIconInput = document.getElementById('hotspot-icon');
             var addHotspotBtn = document.getElementById('add-hotspot');
             var tempHotspot = document.getElementById('temp-hotspot');
+            
+            // 图标选择功能
+            document.querySelectorAll('.icon-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.icon-option').forEach(function(opt) {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    hotspotIconInput.value = this.dataset.icon;
+                });
+            });
             
             // 获取用户的所有图片
             $.ajax({
@@ -181,14 +211,12 @@
             
             // 用于存储点击位置
             var clickPosition = null;
-            var clickRotation = null;
             
             // 点击场景获取位置
             scene.addEventListener('click', function (evt) {
                 if (evt.detail.intersectedEl && evt.detail.intersectedEl.isEqualNode(document.querySelector('a-sky'))) {
                     // 获取点击位置
                     clickPosition = evt.detail.intersection.point;
-                    clickRotation = camera.getAttribute('rotation');
                     
                     // 显示临时热点
                     tempHotspot.setAttribute('position', clickPosition);
@@ -200,6 +228,7 @@
             addHotspotBtn.addEventListener('click', function() {
                 var targetPhotoId = targetPhotoSelect.value;
                 var title = hotspotTitleInput.value;
+                var icon = hotspotIconInput.value;
                 
                 if (!targetPhotoId) {
                     alert('请选择目标图片');
@@ -211,8 +240,8 @@
                     return;
                 }
                 
-                // 将3D坐标转换为经纬度
-                var latLon = convertVector3ToLatLon(clickPosition);
+                // 将3D坐标转换为经纬度（使用更精确的方法）
+                var latLon = convertVector3ToLatLonAccurate(clickPosition);
                 
                 // 发送添加热点请求
                 $.ajax({
@@ -223,7 +252,8 @@
                         target_photo_id: targetPhotoId,
                         latitude: latLon.lat,
                         longitude: latLon.lon,
-                        title: title
+                        title: title,
+                        icon: icon
                     },
                     dataType: 'json',
                     success: function(response) {
@@ -241,15 +271,22 @@
                 });
             });
             
-            // 将3D向量坐标转换为经纬度
-            function convertVector3ToLatLon(position) {
+            // 更精确地将3D向量坐标转换为经纬度
+            function convertVector3ToLatLonAccurate(position) {
                 // 调整坐标系
                 var x = position.x;
                 var y = position.y;
                 var z = -position.z;
                 
-                var radius = Math.sqrt(x*x + y*y + z*z);
-                var lat = Math.asin(y / radius) * 180 / Math.PI;
+                // 归一化坐标到单位球面
+                var length = Math.sqrt(x*x + y*y + z*z);
+                if (length > 0) {
+                    x /= length;
+                    y /= length;
+                    z /= length;
+                }
+                
+                var lat = Math.asin(y) * 180 / Math.PI;
                 var lon = Math.atan2(z, x) * 180 / Math.PI;
                 
                 return { lat: lat, lon: lon };

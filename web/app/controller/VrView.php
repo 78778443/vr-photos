@@ -116,6 +116,7 @@ class VrView extends BaseController
             $latitude = $request->post('latitude');
             $longitude = $request->post('longitude');
             $title = $request->post('title', '');
+            $icon = $request->post('icon', 'circle');
             
             // 检查图片是否存在
             $photo = Db::name('vr_photos')->find($photoId);
@@ -145,7 +146,8 @@ class VrView extends BaseController
                 'target_photo_id' => $targetPhotoId,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
-                'title' => $title
+                'title' => $title,
+                'icon' => $icon
             ];
             
             $hotspotId = Db::name('vr_hotspots')->insertGetId($data);

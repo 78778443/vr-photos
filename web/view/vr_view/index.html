@@ -92,6 +92,18 @@
             max-width: 150px;
             word-wrap: break-word;
         }
+        
+        /* 热点图标样式 */
+        .hotspot-icon {
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -137,11 +149,52 @@
         <?php foreach ($hotspots as $hotspot): ?>
         <a-entity class="interactable" data-target-id="<?php echo $hotspot['target_photo_id']; ?>"
                   position="<?php echo \app\VrUtils::convertLatLonToVector3($hotspot['latitude'], $hotspot['longitude']); ?>"
-                  geometry="primitive: sphere; radius: 0.5;"
-                  material="color: #ff4444; shader: flat;"
-                  scale="0.3 0.3 0.3"
-                  event-set__mouseenter="scale: 0.4 0.4 0.4"
-                  event-set__mouseleave="scale: 0.3 0.3 0.3">
+                  scale="0.5 0.5 0.5">
+            <?php if ($hotspot['icon'] == 'circle'): ?>
+                <a-entity geometry="primitive: sphere; radius: 0.5;"
+                          material="color: #ff4444; shader: flat;"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                </a-entity>
+            <?php elseif ($hotspot['icon'] == 'arrow'): ?>
+                <a-entity geometry="primitive: cone; radius-bottom: 0.5; radius-top: 0; height: 1;"
+                          material="color: #ff4444; shader: flat;"
+                          rotation="0 0 0"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                </a-entity>
+            <?php elseif ($hotspot['icon'] == 'star'): ?>
+                <a-entity geometry="primitive: circle; radius: 0.5;"
+                          material="color: #ff4444; shader: flat;"
+                          text="value: ★; align: center; width: 1; color: white"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                </a-entity>
+            <?php elseif ($hotspot['icon'] == 'plus'): ?>
+                <a-entity geometry="primitive: box; width: 1; height: 0.2; depth: 0.2;"
+                          material="color: #ff4444; shader: flat;"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                    <a-entity geometry="primitive: box; width: 0.2; height: 1; depth: 0.2;"
+                              material="color: #ff4444; shader: flat;"
+                              position="0 0 0">
+                    </a-entity>
+                </a-entity>
+            <?php elseif ($hotspot['icon'] == 'square'): ?>
+                <a-entity geometry="primitive: box; width: 0.8; height: 0.8; depth: 0.8;"
+                          material="color: #ff4444; shader: flat;"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                </a-entity>
+            <?php else: ?>
+                <!-- 默认圆形热点 -->
+                <a-entity geometry="primitive: sphere; radius: 0.5;"
+                          material="color: #ff4444; shader: flat;"
+                          event-set__mouseenter="scale: 1.2 1.2 1.2"
+                          event-set__mouseleave="scale: 1 1 1">
+                </a-entity>
+            <?php endif; ?>
+            
             <?php if (!empty($hotspot['title'])): ?>
             <a-entity class="hotspot-label" text="value: <?php echo $hotspot['title']; ?>; align: center; width: 4;"
                       position="0 -1 0" rotation="0 0 0"></a-entity>
