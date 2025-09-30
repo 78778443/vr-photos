@@ -37,7 +37,7 @@
                 <?php foreach ($photos as $photo): ?>
                 <div class="col-md-4 col-sm-6">
                     <div class="card photo-card">
-                        <img src="/<?php echo $photo['thumbnail_path']; ?>" class="card-img-top photo-thumb" alt="<?php echo $photo['title']; ?>">
+                        <img data-src="/<?php echo $photo['thumbnail_path']; ?>" class="card-img-top photo-thumb lazy" alt="<?php echo $photo['title']; ?>">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo $photo['title']; ?></h5>
                             <p class="card-text"><?php echo mb_substr($photo['description'], 0, 50) . (mb_strlen($photo['description']) > 50 ? '...' : ''); ?></p>
@@ -92,6 +92,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/performance.js"></script>
     <script>
         $(document).ready(function() {
             $('.delete-btn').on('click', function() {

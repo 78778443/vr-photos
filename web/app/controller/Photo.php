@@ -3,6 +3,7 @@
 namespace app\controller;
 
 use app\BaseController;
+use app\ThumbnailOptimizer;
 use think\facade\View;
 use think\facade\Cookie;
 use think\facade\Db;
@@ -63,8 +64,21 @@ class Photo extends BaseController
                 $savename = \think\facade\Filesystem::putFile('vr_photos', $file);
                 $filePath = 'uploads/' . $savename;
                 
-                // 生成缩略图（简化处理，实际项目中可能需要特殊处理全景图缩略图）
-                $thumbnailPath = $filePath; // 这里简化处理，实际应该生成专门的缩略图
+                // 生成缩略图
+                $thumbnailDir = 'uploads/thumbnails/';
+                $thumbnailName = 'thumb_' . basename($filePath);
+                $thumbnailPath = $thumbnailDir . $thumbnailName;
+                
+                // 创建缩略图优化器实例
+                $optimizer = new ThumbnailOptimizer(root_path() . 'public/' . $filePath, root_path() . 'public/' . $thumbnailPath);
+                
+                // 生成缩略图
+                if (!$optimizer->generateThumbnail()) {
+                    $thumbnailPath = $filePath; // 如果缩略图生成失败，使用原图
+                }
+                
+                // 尝试生成WebP格式缩略图
+                $optimizer->generateWebPThumbnail();
                 
                 // 保存到数据库
                 $data = [
