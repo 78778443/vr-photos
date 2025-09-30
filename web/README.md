@@ -1,77 +1,215 @@
-![](https://www.thinkphp.cn/uploads/images/20230630/300c856765af4d8ae758c503185f8739.png)
+# VR全景图片浏览系统
 
-ThinkPHP 8
-===============
+[![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://github.com/top-think/think/blob/8.0/LICENSE.txt)
+[![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.0-green.svg)](https://github.com/top-think/think)
+[![A-Frame](https://img.shields.io/badge/A--Frame-1.4.0-orange.svg)](https://aframe.io/)
 
-## 特性
+VR全景图片浏览系统是一个基于Web的360度全景图片展示和管理系统，支持用户上传、管理、浏览和分享VR全景图片。
 
-* 基于PHP`8.0+`重构
-* 升级`PSR`依赖
-* 依赖`think-orm`3.0+版本
-* 全新的`think-dumper`服务，支持远程调试
-* 支持`6.0`/`6.1`无缝升级
+## 功能特性
 
-> ThinkPHP8的运行环境要求PHP8.0+
+### 核心功能
+- **全景图片浏览**：基于WebGL的360度全景图片展示
+- **VR设备支持**：兼容主流VR头显设备
+- **热点导航**：在全景图片间创建跳转链接
+- **响应式设计**：适配桌面端和移动端设备
 
-现在开始，你可以使用官方提供的[ThinkChat](https://chat.topthink.com/)，让你在学习ThinkPHP的旅途中享受私人AI助理服务！
+### 用户管理
+- 用户注册和登录系统
+- 个人资料管理
+- 权限控制（公开/私有图片）
 
-![](https://www.topthink.com/uploads/assistant/20230630/4d1a3f0ad2958b49bb8189b7ef824cb0.png)
+### 图片管理
+- 全景图片上传（支持JPG、PNG格式）
+- 批量上传功能
+- 图片标签管理
+- 图片分类相册
+- 缩略图自动生成
+- 图片信息编辑（标题、描述等）
 
-ThinkPHP生态服务由[顶想云](https://www.topthink.com)（TOPThink Cloud）提供，为生态提供专业的开发者服务和价值之选。
+### 相册系统
+- 个人相册创建和管理
+- 相册封面设置
+- 图片归类到相册
+- 相册权限设置
 
-## 文档
+### 分享功能
+- 生成分享链接
+- 嵌入代码生成
+- 社交媒体分享
 
-[完全开发手册](https://doc.thinkphp.cn)
+## 技术架构
 
+### 前端技术
+- **框架**：Bootstrap 5
+- **VR引擎**：A-Frame 1.4.0
+- **交互库**：jQuery 3.6.0
+- **响应式设计**：移动优先的响应式布局
 
-## 赞助
+### 后端技术
+- **框架**：ThinkPHP 8.0
+- **数据库**：SQLite（可轻松切换为MySQL等）
+- **模板引擎**：原生PHP模板
+- **文件存储**：本地文件系统
 
-全新的[赞助计划](https://www.thinkphp.cn/sponsor)可以让你通过我们的网站、手册、欢迎页及GIT仓库获得巨大曝光，同时提升企业的品牌声誉，也更好保障ThinkPHP的可持续发展。
+### 系统要求
+- PHP 8.0+
+- Composer
+- SQLite扩展（或MySQL等数据库）
+- GD或Imagick扩展（用于图片处理）
 
-[![](https://www.thinkphp.cn/sponsor/special.svg)](https://www.thinkphp.cn/sponsor/special)
+## 安装部署
 
-[![](https://www.thinkphp.cn/sponsor.svg)](https://www.thinkphp.cn/sponsor)
+### 环境准备
+```bash
+# 确保已安装PHP 8.0+和Composer
+php -v
+composer -V
+```
 
-## 安装
+### 安装步骤
+```bash
+# 克隆项目
+git clone <repository-url>
+cd web
 
-~~~
-composer create-project topthink/think tp
-~~~
+# 安装依赖
+composer install
 
-启动服务
+# 初始化数据库
+# 创建 database.db 文件并执行 database.sql 中的SQL语句
 
-~~~
-cd tp
-php think run
-~~~
+# 配置Web服务器
+# 将网站根目录指向 public 目录
+```
 
-然后就可以在浏览器中访问
+### Web服务器配置
+#### Apache
+确保已启用 mod_rewrite 模块，项目包含 .htaccess 文件。
 
-~~~
-http://localhost:8000
-~~~
+#### Nginx
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/public;
+    index index.php index.html;
+    
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
 
-如果需要更新框架使用
-~~~
-composer update topthink/framework
-~~~
+### 目录权限
+确保以下目录具有写权限：
+- `public/uploads/`
+- `public/uploads/thumbnails/`
+- `runtime/`
 
-## 命名规范
+## 使用指南
 
-`ThinkPHP`遵循PSR-2命名规范和PSR-4自动加载规范。
+详细使用说明请查看 [用户手册](docs/user_manual.md)
 
-## 参与开发
+### 快速开始
+1. 访问网站首页
+2. 注册新用户账号
+3. 登录系统
+4. 上传全景图片
+5. 创建相册并管理图片
+6. 浏览和分享全景图片
 
-直接提交PR或者Issue即可
+### 上传图片
+1. 点击导航栏"上传图片"
+2. 拖拽图片到上传区域或点击选择文件
+3. 填写图片信息（标题、描述、标签等）
+4. 设置图片权限（公开/私有）
+5. 点击"开始上传"
 
-## 版权信息
+### 管理相册
+1. 点击导航栏"我的相册"
+2. 点击"创建相册"按钮
+3. 填写相册名称和描述
+4. 在相册详情页添加图片到相册
 
-ThinkPHP遵循Apache2开源协议发布，并提供免费使用。
+### 浏览图片
+1. 点击导航栏"全景图片"浏览公开图片
+2. 点击"我的图片"查看个人上传的图片
+3. 点击图片进入全景浏览页面
+4. 使用鼠标拖拽或触摸滑动查看不同角度
 
-本项目包含的第三方源码和二进制文件之版权信息另行标注。
+### VR模式
+在支持WebVR的浏览器中，可以点击全屏按钮进入VR模式，使用VR头显设备获得沉浸式体验。
 
-版权所有Copyright © 2006-2024 by ThinkPHP (http://thinkphp.cn) All rights reserved。
+## 开发说明
 
-ThinkPHP® 商标和著作权所有者为上海顶想信息科技有限公司。
+### 项目结构
+```
+web/
+├── app/                 # 应用目录
+│   ├── controller/      # 控制器
+│   ├── view/           # 视图模板
+│   └── ...             # 其他应用文件
+├── public/             # Web入口目录
+│   ├── uploads/        # 上传文件目录
+│   ├── css/            # 样式文件
+│   ├── js/             # JavaScript文件
+│   └── index.php       # 入口文件
+├── runtime/            # 运行时目录
+├── vendor/             # Composer依赖
+├── database.sql        # 数据库结构
+└── composer.json       # 依赖配置
+```
 
-更多细节参阅 [LICENSE.txt](LICENSE.txt)
+### 自定义开发
+1. 控制器位于 `app/controller/`
+2. 视图模板位于 `app/view/`
+3. 静态资源位于 `public/` 目录下对应子目录
+4. 数据库操作使用ThinkPHP的Db门面
+
+## 常见问题
+
+### 图片无法上传
+- 检查目录权限
+- 确认PHP上传限制配置
+- 验证文件格式是否支持
+
+### 全景浏览黑屏
+- 确认图片格式正确（equirectangular投影）
+- 检查浏览器兼容性
+- 查看浏览器控制台错误信息
+
+### 数据库连接失败
+- 检查数据库配置
+- 确认数据库服务运行状态
+- 验证数据库文件权限
+
+## 贡献指南
+
+欢迎提交Issue和Pull Request来改进系统：
+
+1. Fork项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启Pull Request
+
+## 许可证
+
+本项目基于Apache 2.0许可证发布，详见 [LICENSE](LICENSE.txt) 文件。
+
+## 致谢
+
+- [ThinkPHP](https://github.com/top-think/think) - 现代化的PHP开发框架
+- [A-Frame](https://aframe.io/) - WebVR框架
+- [Bootstrap](https://getbootstrap.com/) - 响应式前端框架
+- [jQuery](https://jquery.com/) - JavaScript库
+
+---
