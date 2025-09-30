@@ -20,27 +20,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="/">VR全景图片浏览系统</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">首页</a>
-                <a class="nav-link active" href="/photo/my">我的图片</a>
-                <a class="nav-link" href="/photo/upload">上传图片</a>
-                <a class="nav-link" href="/album">我的相册</a>
-                <?php 
-                // 检查Cookie中的用户认证信息
-                $userAuth = isset($_COOKIE['user_auth']) ? $_COOKIE['user_auth'] : null;
-                if ($userAuth): 
-                    $userInfo = json_decode($userAuth, true);
-                ?>
-                    <a class="nav-link" href="/user/logout">退出</a>
-                <?php else: ?>
-                    <a class="nav-link" href="/user/login">登录</a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </nav>
+    <?php echo renderNavbar('my_photo'); ?>
 
     <div class="container">
         <h1 class="text-center my-4">我的全景图片</h1>

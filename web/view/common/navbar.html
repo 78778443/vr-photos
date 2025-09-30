@@ -1,0 +1,46 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">VR全景图片浏览系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link <?php echo ($page == 'index') ? 'active' : ''; ?>" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo ($page == 'photo') ? 'active' : ''; ?>" href="/photo">全景图片</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo ($page == 'my_photo') ? 'active' : ''; ?>" href="/photo/my">我的图片</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo ($page == 'album') ? 'active' : ''; ?>" href="/album">我的相册</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <?php 
+                // 检查Cookie中的用户认证信息
+                $userAuth = isset($_COOKIE['user_auth']) ? $_COOKIE['user_auth'] : null;
+                if ($userAuth): 
+                    $userInfo = json_decode($userAuth, true);
+                ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($page == 'upload') ? 'active' : ''; ?>" href="/photo/upload">上传图片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user/logout">退出 (<?php echo htmlspecialchars($userInfo['username']); ?>)</a>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($page == 'login') ? 'active' : ''; ?>" href="/user/login">登录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($page == 'register') ? 'active' : ''; ?>" href="/user/register">注册</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -8,6 +8,8 @@
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
+    <?php echo renderNavbar('register'); ?>
+    
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6">
@@ -53,6 +55,15 @@
             $('#registerForm').on('submit', function(e) {
                 e.preventDefault();
                 
+                // 检查密码是否匹配
+                var password = $('#password').val();
+                var confirmPassword = $('#confirm_password').val();
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                
                 $.ajax({
                     url: '/user/register',
                     method: 'POST',
@@ -61,7 +72,7 @@
                     success: function(response) {
                         if (response.code === 200) {
                             alert('注册成功');
-                            window.location.href = '/user/login';
+                            window.location.href = response.redirect;
                         } else {
                             alert(response.msg);
                         }
