@@ -6,8 +6,5 @@ return [
     // 优先级设置，此数组中的中间件会按照数组中的顺序优先执行
     'priority' => [],
     // 全局中间件定义文件
-    'middleware' => [
-        // 开启Session
-        \think\middleware\SessionInit::class
-    ]
+    \think\middleware\SessionInit::class
 ];

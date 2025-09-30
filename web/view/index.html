@@ -45,7 +45,12 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
-                    <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php 
+                    // 检查Cookie中的用户认证信息
+                    $userAuth = isset($_COOKIE['user_auth']) ? $_COOKIE['user_auth'] : null;
+                    if ($userAuth): 
+                        $userInfo = json_decode($userAuth, true);
+                    ?>
                         <li class="nav-item">
                             <a class="nav-link" href="/photo/my">我的图片</a>
                         </li>
@@ -53,7 +58,7 @@
                             <a class="nav-link" href="/photo/upload">上传图片</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/logout">退出</a>
+                            <a class="nav-link" href="/user/logout">退出 (<?php echo htmlspecialchars($userInfo['username']); ?>)</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">

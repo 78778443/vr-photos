@@ -4,7 +4,7 @@ namespace app\controller;
 
 use app\BaseController;
 use think\facade\View;
-use think\facade\Session;
+use think\facade\Cookie;
 use think\facade\Db;
 use think\facade\Upload;
 
@@ -14,9 +14,12 @@ class Photo extends BaseController
     public function upload()
     {
         // 检查用户是否登录
-        if (!Session::has('user_id')) {
+        $userAuth = Cookie::get('user_auth');
+        if (empty($userAuth)) {
             return redirect('/user/login')->with('msg', '请先登录');
         }
+        
+        $userInfo = json_decode($userAuth, true);
 
         if ($this->request->isPost()) {
             $title = $this->request->post('title');
@@ -45,7 +48,7 @@ class Photo extends BaseController
                 
                 // 保存到数据库
                 $data = [
-                    'user_id' => Session::get('user_id'),
+                    'user_id' => $userInfo['user_id'],
                     'title' => $title,
                     'description' => $description,
                     'file_path' => $filePath,
@@ -88,13 +91,16 @@ class Photo extends BaseController
     public function my()
     {
         // 检查用户是否登录
-        if (!Session::has('user_id')) {
+        $userAuth = Cookie::get('user_auth');
+        if (empty($userAuth)) {
             return redirect('/user/login')->with('msg', '请先登录');
         }
         
+        $userInfo = json_decode($userAuth, true);
+        
         // 查询当前用户的全景图片
         $photos = Db::name('vr_photos')
-            ->where('user_id', Session::get('user_id'))
+            ->where('user_id', $userInfo['user_id'])
             ->order('created_at', 'desc')
             ->paginate(12);
         
@@ -105,9 +111,12 @@ class Photo extends BaseController
     public function delete($id)
     {
         // 检查用户是否登录
-        if (!Session::has('user_id')) {
+        $userAuth = Cookie::get('user_auth');
+        if (empty($userAuth)) {
             return json(['code' => 401, 'msg' => '请先登录']);
         }
+        
+        $userInfo = json_decode($userAuth, true);
         
         // 查询要删除的图片
         $photo = Db::name('vr_photos')->find($id);
@@ -116,7 +125,7 @@ class Photo extends BaseController
         }
         
         // 检查是否有权限删除（必须是图片的所有者）
-        if ($photo['user_id'] != Session::get('user_id')) {
+        if ($photo['user_id'] != $userInfo['user_id']) {
             return json(['code' => 403, 'msg' => '无权删除']);
         }
         

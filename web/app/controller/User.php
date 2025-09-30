@@ -4,8 +4,9 @@ namespace app\controller;
 
 use app\BaseController;
 use think\facade\View;
-use think\facade\Session;
+use think\facade\Cookie;
 use think\facade\Db;
+use think\facade\Config;
 
 class User extends BaseController
 {
@@ -74,9 +75,14 @@ class User extends BaseController
                 return json(['code' => 400, 'msg' => '密码错误']);
             }
             
-            // 登录成功，保存会话
-            Session::set('user_id', $user['id']);
-            Session::set('username', $user['username']);
+            // 登录成功，保存Cookie（加密）
+            $userData = [
+                'user_id' => $user['id'],
+                'username' => $user['username']
+            ];
+            
+            // 加密用户数据并设置Cookie
+            Cookie::set('user_auth', json_encode($userData), 3600 * 24 * 7); // 保存7天
             
             return json(['code' => 200, 'msg' => '登录成功', 'redirect' => '/photo']);
         }
@@ -87,7 +93,25 @@ class User extends BaseController
     // 用户退出
     public function logout()
     {
-        Session::clear();
+        Cookie::delete('user_auth');
         return redirect('/user/login')->with('msg', '退出成功');
+    }
+    
+    // 检查用户是否已登录的辅助方法
+    protected function isLogin()
+    {
+        $userAuth = Cookie::get('user_auth');
+        return !empty($userAuth);
+    }
+    
+    // 获取当前登录用户信息的辅助方法
+    protected function getUserInfo()
+    {
+        $userAuth = Cookie::get('user_auth');
+        if (empty($userAuth)) {
+            return null;
+        }
+        
+        return json_decode($userAuth, true);
     }
 }

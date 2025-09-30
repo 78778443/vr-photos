@@ -4,6 +4,7 @@ namespace app\controller;
 
 use app\BaseController;
 use think\facade\View;
+use think\facade\Cookie;
 use think\facade\Db;
 
 class View extends BaseController
@@ -24,8 +25,17 @@ class View extends BaseController
         
         // 检查访问权限
         if ($photo['is_public'] != 1) {
-            // 这里可以添加更多权限检查逻辑
-            // 比如检查是否是图片所有者等
+            // 检查用户是否登录
+            $userAuth = Cookie::get('user_auth');
+            if (empty($userAuth)) {
+                return abort(403, '无权访问');
+            }
+            
+            $userInfo = json_decode($userAuth, true);
+            // 检查是否是图片所有者
+            if ($photo['user_id'] != $userInfo['user_id']) {
+                return abort(403, '无权访问');
+            }
         }
         
         // 增加浏览次数
