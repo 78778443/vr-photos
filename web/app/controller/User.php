@@ -78,7 +78,7 @@ class User extends BaseController
             Session::set('user_id', $user['id']);
             Session::set('username', $user['username']);
             
-            return json(['code' => 200, 'msg' => '登录成功']);
+            return json(['code' => 200, 'msg' => '登录成功', 'redirect' => '/photo']);
         }
         
         return View::fetch('user/login');

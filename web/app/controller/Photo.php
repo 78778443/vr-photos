@@ -57,7 +57,7 @@ class Photo extends BaseController
                 $photoId = Db::name('vr_photos')->insertGetId($data);
                 
                 if ($photoId) {
-                    return json(['code' => 200, 'msg' => '上传成功']);
+                    return json(['code' => 200, 'msg' => '上传成功', 'redirect' => '/photo/my']);
                 } else {
                     return json(['code' => 500, 'msg' => '上传失败']);
                 }
