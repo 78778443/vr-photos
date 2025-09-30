@@ -306,4 +306,20 @@ class ThumbnailOptimizer
 
         return $tips;
     }
+    
+    /**
+     * 生成带时间戳的缩略图文件名，便于缓存控制
+     * 
+     * @param string $originalPath 原始文件路径
+     * @return string 缩略图文件名
+     */
+    public static function generateThumbnailName(string $originalPath): string
+    {
+        $filename = pathinfo($originalPath, PATHINFO_FILENAME);
+        $extension = pathinfo($originalPath, PATHINFO_EXTENSION);
+        $filemtime = file_exists($originalPath) ? filemtime($originalPath) : time();
+        
+        // 生成带时间戳的缩略图文件名
+        return $filename . '_thumb_' . $filemtime . '.' . $extension;
+    }
 }

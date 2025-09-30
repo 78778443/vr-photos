@@ -2,6 +2,7 @@
 class ImageLazyLoader {
     constructor() {
         this.imageObserver = null;
+        this.cache = this.loadCacheFromStorage(); // 从localStorage加载缓存
         this.init();
     }
 
@@ -26,6 +27,18 @@ class ImageLazyLoader {
         const src = img.dataset.src;
         if (!src) return;
 
+        // 检查浏览器缓存
+        if (this.cache.has(src)) {
+            const cachedData = this.cache.get(src);
+            // 检查缓存是否过期 (默认缓存1小时)
+            if (Date.now() - cachedData.timestamp < 3600000) {
+                img.src = cachedData.src;
+                img.classList.remove('loading');
+                img.classList.add('loaded');
+                return;
+            }
+        }
+
         // 显示加载动画
         img.classList.add('loading');
 
@@ -34,11 +47,29 @@ class ImageLazyLoader {
             img.src = src;
             img.classList.remove('loading');
             img.classList.add('loaded');
+            
+            // 添加到浏览器缓存
+            this.cache.set(src, {
+                src: src,
+                timestamp: Date.now()
+            });
+            
+            // 保存到localStorage
+            this.saveCacheToStorage();
         };
         image.onerror = () => {
             img.classList.remove('loading');
             img.classList.add('error');
             img.src = '/images/placeholder.svg'; // 占位图
+            
+            // 添加错误状态到缓存，避免重复请求失败的图片
+            this.cache.set(src, {
+                src: '/images/placeholder.svg',
+                timestamp: Date.now()
+            });
+            
+            // 保存到localStorage
+            this.saveCacheToStorage();
         };
         image.src = src;
     }
@@ -53,6 +84,53 @@ class ImageLazyLoader {
                 img.src = img.dataset.src;
             });
         }
+    }
+    
+    // 从localStorage加载缓存
+    loadCacheFromStorage() {
+        try {
+            const cachedData = localStorage.getItem('imageLazyLoadCache');
+            if (cachedData) {
+                const parsed = JSON.parse(cachedData);
+                const cache = new Map();
+                for (const [key, value] of Object.entries(parsed)) {
+                    cache.set(key, value);
+                }
+                return cache;
+            }
+        } catch (e) {
+            console.warn('Failed to load image cache from localStorage:', e);
+        }
+        return new Map();
+    }
+    
+    // 保存缓存到localStorage
+    saveCacheToStorage() {
+        try {
+            // 清理过期缓存
+            const now = Date.now();
+            for (const [key, value] of this.cache.entries()) {
+                if (now - value.timestamp > 3600000) { // 超过1小时的缓存清除
+                    this.cache.delete(key);
+                }
+            }
+            
+            // 转换Map为普通对象以便存储
+            const obj = {};
+            for (const [key, value] of this.cache.entries()) {
+                obj[key] = value;
+            }
+            
+            localStorage.setItem('imageLazyLoadCache', JSON.stringify(obj));
+        } catch (e) {
+            console.warn('Failed to save image cache to localStorage:', e);
+        }
+    }
+    
+    // 清除缓存
+    clearCache() {
+        this.cache.clear();
+        localStorage.removeItem('imageLazyLoadCache');
     }
 }
 
@@ -114,6 +192,23 @@ class CacheManager {
     static setCacheForImage(img, maxAge = 3600) {
         // 为单个图片设置缓存策略
         img.setAttribute('data-cache-max-age', maxAge);
+    }
+    
+    // 清除缓存
+    static clearCache() {
+        localStorage.removeItem('imageCache');
+        localStorage.removeItem('imageLazyLoadCache');
+    }
+    
+    // 获取缓存大小
+    static getCacheSize() {
+        let size = 0;
+        for (let key in localStorage) {
+            if (key.startsWith('image_')) {
+                size += localStorage[key].length;
+            }
+        }
+        return size;
     }
 }
 

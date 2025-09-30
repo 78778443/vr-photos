@@ -66,7 +66,8 @@ class Photo extends BaseController
                 
                 // 生成缩略图
                 $thumbnailDir = 'uploads/thumbnails/';
-                $thumbnailName = 'thumb_' . basename($filePath);
+                // 使用带时间戳的缩略图文件名，便于缓存控制
+                $thumbnailName = ThumbnailOptimizer::generateThumbnailName(root_path() . 'public/' . $filePath);
                 $thumbnailPath = $thumbnailDir . $thumbnailName;
                 
                 // 创建缩略图优化器实例
