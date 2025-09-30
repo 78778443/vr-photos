@@ -43,3 +43,18 @@ CREATE TABLE `vr_photo_tags` (
   FOREIGN KEY (`photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON DELETE CASCADE
 );
+
+-- 热点表（用于VR图片之间的跳转）
+CREATE TABLE `vr_hotspots` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `photo_id` int(11) NOT NULL COMMENT '所属全景图片ID',
+  `target_photo_id` int(11) NOT NULL COMMENT '目标全景图片ID',
+  `latitude` float NOT NULL COMMENT '纬度(-90到90)',
+  `longitude` float NOT NULL COMMENT '经度(-180到180)',
+  `title` varchar(255) DEFAULT NULL COMMENT '热点标题',
+  `description` text COMMENT '热点描述',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`target_photo_id`) REFERENCES `vr_photos`(`id`) ON DELETE CASCADE
+);

@@ -64,6 +64,70 @@
         #zoom-controls button:hover {
             background: rgba(255,255,255,0.3);
         }
+        
+        /* 热点样式 */
+        .hotspot {
+            cursor: pointer;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border: 2px solid white;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        
+        .hotspot:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        .hotspot::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+        }
+        
+        .hotspot-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .hotspot:hover .hotspot-label {
+            opacity: 1;
+        }
+        
+        /* 编辑按钮 */
+        #edit-hotspots {
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+        
+        #edit-hotspots:hover {
+            background: rgba(0,0,0,0.8);
+        }
     </style>
 </head>
 <body>
@@ -83,6 +147,19 @@
             <button id="zoom-out" title="缩小">-</button>
             <button id="zoom-reset" title="重置">↺</button>
         </div>
+        
+        <!-- 检查用户是否有权限编辑 -->
+        <?php 
+        $userAuth = isset($_COOKIE['user_auth']) ? $_COOKIE['user_auth'] : null;
+        if ($userAuth):
+            $userInfo = json_decode($userAuth, true);
+            if ($photo['user_id'] == $userInfo['user_id']):
+        ?>
+        <a href="/VrView/edit/id/<?php echo $photo['id']; ?>" id="edit-hotspots">编辑热点</a>
+        <?php 
+            endif;
+        endif; 
+        ?>
     </div>
     
     <a-scene id="scene">
@@ -95,6 +172,9 @@
         <!-- 相机设置 -->
         <a-entity camera look-controls position="0 1.6 0" id="camera"></a-entity>
     </a-scene>
+    
+    <!-- 热点容器 -->
+    <div id="hotspots-container"></div>
     
     <script>
         // 页面加载完成后隐藏地址栏（移动端）
@@ -218,6 +298,36 @@
             zoomInBtn.addEventListener('mouseleave', stopZoom);
             zoomOutBtn.addEventListener('mouseup', stopZoom);
             zoomOutBtn.addEventListener('mouseleave', stopZoom);
+            
+            // 添加热点功能
+            var hotspots = <?php echo json_encode($hotspots); ?>;
+            var hotspotsContainer = document.getElementById('hotspots-container');
+            
+            // 创建热点元素
+            function createHotspot(hotspot) {
+                var hotspotEl = document.createElement('div');
+                hotspotEl.className = 'hotspot';
+                hotspotEl.dataset.targetId = hotspot.target_photo_id;
+                
+                var labelEl = document.createElement('div');
+                labelEl.className = 'hotspot-label';
+                labelEl.textContent = hotspot.target_title || '跳转到其他场景';
+                
+                hotspotEl.appendChild(labelEl);
+                hotspotsContainer.appendChild(hotspotEl);
+                
+                // 添加点击事件
+                hotspotEl.addEventListener('click', function() {
+                    window.location.href = '/VrView/index/id/' + hotspot.target_photo_id;
+                });
+                
+                return hotspotEl;
+            }
+            
+            // 初始化热点
+            hotspots.forEach(function(hotspot) {
+                createHotspot(hotspot);
+            });
         });
     </script>
 </body>
