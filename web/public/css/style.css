@@ -90,6 +90,11 @@ body {
   border-color: #b02a37;
 }
 
+.btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
 /* 表单样式 */
 .form-control, .form-select {
   border-radius: var(--border-radius);
@@ -164,6 +169,43 @@ body {
   font-size: 0.9rem;
 }
 
+/* 批量上传区域 */
+#drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+#drop-zone:hover, #drop-zone.bg-primary {
+  border-color: var(--primary-color);
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+#drop-zone.bg-primary {
+  border-style: solid;
+}
+
+/* 文件预览卡片 */
+#file-list .card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#file-list .card:hover {
+  transform: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* 进度条样式 */
+.progress {
+  height: 1.25rem;
+  border-radius: var(--border-radius);
+}
+
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
 /* 分享模态框 */
 .share-modal .modal-content {
   border-radius: var(--border-radius);
@@ -197,6 +239,10 @@ footer {
   
   .photo-thumb {
     height: 150px;
+  }
+  
+  #file-list .col-md-4 {
+    width: 100%;
   }
 }
 

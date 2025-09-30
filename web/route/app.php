@@ -15,3 +15,6 @@ Route::get('think', function () {
 });
 
 Route::get('hello/:name', 'index/hello');
+
+// 批量上传路由
+Route::post('photo/batchUpload', 'photo/batchUpload');

@@ -31,37 +31,63 @@
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <div class="card mt-5">
                     <div class="card-header">
                         <h3 class="text-center">上传全景图片</h3>
                     </div>
                     <div class="card-body">
-                        <form id="uploadForm" enctype="multipart/form-data">
+                        <!-- 批量上传区域 -->
+                        <div class="mb-4">
+                            <div id="drop-zone" class="border rounded p-5 text-center bg-light">
+                                <h4>拖放图片到此处</h4>
+                                <p class="text-muted">支持JPG、PNG格式的全景图片，最大支持50MB</p>
+                                <button type="button" class="btn btn-primary" id="select-files-btn">选择文件</button>
+                                <input type="file" id="file-input" accept=".jpg,.jpeg,.png" multiple style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- 文件列表和预览 -->
+                        <div id="file-preview-container" class="mb-4" style="display: none;">
+                            <h5>待上传文件</h5>
+                            <div id="file-list" class="row"></div>
+                        </div>
+
+                        <!-- 批量设置表单 -->
+                        <div id="batch-settings" class="mb-4" style="display: none;">
+                            <h5>批量设置</h5>
                             <div class="mb-3">
-                                <label for="title" class="form-label">标题</label>
-                                <input type="text" class="form-control" id="title" name="title" required>
+                                <label for="title_prefix" class="form-label">标题前缀</label>
+                                <input type="text" class="form-control" id="title_prefix" placeholder="例如：我的旅行照片">
+                                <div class="form-text">为所有图片添加统一前缀，系统会自动添加序号</div>
                             </div>
                             <div class="mb-3">
-                                <label for="description" class="form-label">描述</label>
-                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                <label for="description_template" class="form-label">描述模板</label>
+                                <textarea class="form-control" id="description_template" rows="3" placeholder="例如：拍摄于XXXX年XX月XX日"></textarea>
                             </div>
                             <div class="mb-3">
-                                <label for="photo" class="form-label">全景图片</label>
-                                <input type="file" class="form-control" id="photo" name="photo" accept=".jpg,.jpeg,.png" required>
-                                <div class="form-text">支持JPG、PNG格式的全景图片，最大支持50MB</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="is_public" class="form-label">是否公开</label>
-                                <select class="form-select" id="is_public" name="is_public">
+                                <label for="is_public_batch" class="form-label">是否公开</label>
+                                <select class="form-select" id="is_public_batch">
                                     <option value="1" selected>公开</option>
                                     <option value="0">私有</option>
                                 </select>
                             </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">上传</button>
+                        </div>
+
+                        <!-- 上传按钮 -->
+                        <div class="d-grid mb-3">
+                            <button type="button" class="btn btn-primary btn-lg" id="upload-btn" disabled>开始上传</button>
+                        </div>
+
+                        <!-- 上传进度 -->
+                        <div id="upload-progress-container" style="display: none;">
+                            <h5>上传进度</h5>
+                            <div class="progress mb-2">
+                                <div id="overall-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
                             </div>
-                        </form>
+                            <div id="progress-text" class="text-center mb-3">准备上传...</div>
+                            <div id="file-progress-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -70,49 +96,272 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/performance.js"></script>
     <script>
         $(document).ready(function() {
-            $('#uploadForm').on('submit', function(e) {
+            // 全局变量
+            let filesToUpload = [];
+            let isUploading = false;
+
+            // DOM元素
+            const dropZone = $('#drop-zone');
+            const fileInput = $('#file-input');
+            const selectFilesBtn = $('#select-files-btn');
+            const filePreviewContainer = $('#file-preview-container');
+            const fileList = $('#file-list');
+            const batchSettings = $('#batch-settings');
+            const uploadBtn = $('#upload-btn');
+            const uploadProgressContainer = $('#upload-progress-container');
+            const overallProgress = $('#overall-progress');
+            const progressText = $('#progress-text');
+            const fileProgressList = $('#file-progress-list');
+
+            // 事件绑定
+            selectFilesBtn.on('click', function() {
+                fileInput.click();
+            });
+
+            fileInput.on('change', function(e) {
+                handleFiles(e.target.files);
+            });
+
+            dropZone.on('dragover', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
+                $(this).addClass('bg-primary text-white');
+            });
+
+            dropZone.on('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).removeClass('bg-primary text-white');
+            });
+
+            dropZone.on('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).removeClass('bg-primary text-white');
                 
-                // 检查文件大小
-                var fileInput = $('#photo')[0];
-                if (fileInput.files.length > 0) {
-                    var fileSize = fileInput.files[0].size; // 字节
-                    var maxSize = 50 * 1024 * 1024; // 50MB
-                    
-                    if (fileSize > maxSize) {
-                        alert('文件大小超过限制，最大允许50MB');
-                        return;
+                const files = e.originalEvent.dataTransfer.files;
+                handleFiles(files);
+            });
+
+            uploadBtn.on('click', function() {
+                if (!isUploading && filesToUpload.length > 0) {
+                    startUpload();
+                }
+            });
+
+            // 处理文件选择
+            function handleFiles(files) {
+                if (isUploading) return;
+
+                // 过滤有效文件
+                const validFiles = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type.startsWith('image/')) {
+                        validFiles.push(file);
                     }
                 }
-                
-                var formData = new FormData(this);
-                
-                $.ajax({
-                    url: '/photo/upload',
-                    method: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.code === 200) {
-                            alert('上传成功');
-                            window.location.href = response.redirect;
-                        } else {
-                            alert(response.msg);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 413) {
-                            alert('文件大小超过限制，请上传小于50MB的文件');
-                        } else {
-                            alert('请求失败，请重试');
-                        }
-                    }
+
+                if (validFiles.length === 0) {
+                    alert('请选择有效的图片文件');
+                    return;
+                }
+
+                // 添加到待上传列表
+                filesToUpload = filesToUpload.concat(validFiles);
+
+                // 显示文件预览
+                showFilePreviews();
+
+                // 显示批量设置区域
+                batchSettings.show();
+                uploadBtn.prop('disabled', false);
+            }
+
+            // 显示文件预览
+            function showFilePreviews() {
+                filePreviewContainer.show();
+                fileList.empty();
+
+                filesToUpload.forEach((file, index) => {
+                    const fileItem = $(`
+                        <div class="col-md-4 col-sm-6 mb-3" data-file-index="${index}">
+                            <div class="card">
+                                <div style="height: 150px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                    <img src="" alt="${file.name}" class="img-fluid" style="max-height: 100%; width: auto;">
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" title="${file.name}">${file.name}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                    </p>
+                                    <button type="button" class="btn btn-sm btn-danger remove-file-btn" data-file-index="${index}">移除</button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    fileList.append(fileItem);
+
+                    // 生成预览图
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        fileItem.find('img').attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
                 });
-            });
+
+                // 绑定移除按钮事件
+                $('.remove-file-btn').on('click', function() {
+                    const fileIndex = $(this).data('file-index');
+                    removeFile(fileIndex);
+                });
+            }
+
+            // 移除文件
+            function removeFile(index) {
+                if (isUploading) return;
+
+                filesToUpload.splice(index, 1);
+                showFilePreviews();
+
+                if (filesToUpload.length === 0) {
+                    filePreviewContainer.hide();
+                    batchSettings.hide();
+                    uploadBtn.prop('disabled', true);
+                }
+            }
+
+            // 开始上传
+            function startUpload() {
+                if (isUploading) return;
+                
+                isUploading = true;
+                uploadBtn.prop('disabled', true);
+                uploadProgressContainer.show();
+                
+                // 获取批量设置
+                const titlePrefix = $('#title_prefix').val();
+                const descriptionTemplate = $('#description_template').val();
+                const isPublic = $('#is_public_batch').val();
+                
+                // 初始化进度显示
+                fileProgressList.empty();
+                filesToUpload.forEach((file, index) => {
+                    const fileProgressItem = $(`
+                        <div class="mb-2" data-file-index="${index}">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-truncate" style="max-width: 70%;">${file.name}</span>
+                                <span class="progress-text">等待上传</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    `);
+                    fileProgressList.append(fileProgressItem);
+                });
+                
+                // 并行上传文件
+                const uploadPromises = filesToUpload.map((file, index) => {
+                    return uploadFile(file, index, titlePrefix, descriptionTemplate, isPublic);
+                });
+                
+                // 监控整体进度
+                Promise.all(uploadPromises)
+                    .then(results => {
+                        isUploading = false;
+                        progressText.text('上传完成!');
+                        uploadBtn.text('上传完成').removeClass('btn-primary').addClass('btn-success');
+                        
+                        // 检查结果并显示消息
+                        const successCount = results.filter(r => r.success).length;
+                        const failCount = results.length - successCount;
+                        
+                        if (failCount === 0) {
+                            setTimeout(() => {
+                                alert(`成功上传 ${successCount} 个文件`);
+                                window.location.href = '/photo/my';
+                            }, 1000);
+                        } else {
+                            alert(`上传完成: ${successCount} 个成功, ${failCount} 个失败`);
+                        }
+                    })
+                    .catch(error => {
+                        isUploading = false;
+                        progressText.text('上传出错');
+                        console.error('上传出错:', error);
+                        alert('上传过程中发生错误，请重试');
+                    });
+            }
+
+            // 上传单个文件
+            function uploadFile(file, index, titlePrefix, descriptionTemplate, isPublic) {
+                return new Promise((resolve) => {
+                    const formData = new FormData();
+                    
+                    // 生成标题
+                    let title = file.name;
+                    if (titlePrefix) {
+                        title = `${titlePrefix}_${index + 1}`;
+                    } else {
+                        // 移除文件扩展名
+                        title = title.replace(/\.[^/.]+$/, "");
+                    }
+                    
+                    formData.append('title', title);
+                    formData.append('description', descriptionTemplate);
+                    formData.append('is_public', isPublic);
+                    formData.append('photo', file);
+                    
+                    const xhr = new XMLHttpRequest();
+                    const fileProgressItem = $(`[data-file-index="${index}"]`);
+                    const progressBar = fileProgressItem.find('.progress-bar');
+                    const progressText = fileProgressItem.find('.progress-text');
+                    
+                    // 监听上传进度
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percentComplete = (e.loaded / e.total) * 100;
+                            progressBar.css('width', percentComplete + '%');
+                            progressText.text(`上传中 ${Math.round(percentComplete)}%`);
+                        }
+                    });
+                    
+                    // 处理响应
+                    xhr.addEventListener('load', function() {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.code === 200) {
+                                progressBar.removeClass('bg-primary').addClass('bg-success');
+                                progressText.text('上传成功');
+                                resolve({success: true, file: file.name});
+                            } else {
+                                progressBar.removeClass('bg-primary').addClass('bg-danger');
+                                progressText.text('上传失败: ' + response.msg);
+                                resolve({success: false, file: file.name, error: response.msg});
+                            }
+                        } else {
+                            progressBar.removeClass('bg-primary').addClass('bg-danger');
+                            progressText.text('上传失败');
+                            resolve({success: false, file: file.name, error: 'HTTP ' + xhr.status});
+                        }
+                    });
+                    
+                    xhr.addEventListener('error', function() {
+                        progressBar.removeClass('bg-primary').addClass('bg-danger');
+                        progressText.text('网络错误');
+                        resolve({success: false, file: file.name, error: '网络错误'});
+                    });
+                    
+                    // 发送请求
+                    progressText.text('准备上传');
+                    xhr.open('POST', '/photo/batchUpload');
+                    xhr.send(formData);
+                });
+            }
         });
     </script>
 </body>

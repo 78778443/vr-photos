@@ -60,6 +60,12 @@ class ThumbnailOptimizer
      */
     public function generateThumbnail(): bool
     {
+        // 检查GD扩展是否可用
+        if (!$this->isGDExtensionAvailable()) {
+            error_log("GD扩展未安装或未启用，无法生成缩略图");
+            return false;
+        }
+
         // 检查原始文件是否存在
         if (!file_exists($this->sourcePath)) {
             return false;
@@ -167,6 +173,12 @@ class ThumbnailOptimizer
      */
     public function generateWebPThumbnail(): bool
     {
+        // 检查GD扩展是否可用
+        if (!$this->isGDExtensionAvailable()) {
+            error_log("GD扩展未安装或未启用，无法生成WebP缩略图");
+            return false;
+        }
+
         // 检查是否支持WebP
         if (!function_exists('imagewebp')) {
             return false;
@@ -321,5 +333,15 @@ class ThumbnailOptimizer
         
         // 生成带时间戳的缩略图文件名
         return $filename . '_thumb_' . $filemtime . '.' . $extension;
+    }
+    
+    /**
+     * 检查GD扩展是否可用
+     * 
+     * @return bool GD扩展是否可用
+     */
+    private function isGDExtensionAvailable(): bool
+    {
+        return extension_loaded('gd') && function_exists('imagecreatetruecolor');
     }
 }
