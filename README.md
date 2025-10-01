@@ -7,7 +7,7 @@
 一个基于Web的360度全景图片展示和管理系统，支持用户上传、管理、浏览和分享VR全景图片，带来沉浸式视觉体验。
 
 <p align="center">
-  <img src="docs/images/demo.gif" alt="系统演示" width="600"/>
+  <img src="web/docs/index.png" alt="系统演示" width="600"/>
 </p>
 
 ## 🌟 特色功能
