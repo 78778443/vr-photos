@@ -138,6 +138,15 @@
         ?>
     </div>
     
+    <!-- 添加加载指示器 -->
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🔄</div>
+            <h2>全景图片加载中...</h2>
+            <p>请稍候，正在加载高质量全景图像</p>
+        </div>
+    </div>
+    
     <a-scene id="scene" cursor="rayOrigin: mouse">
         <a-assets>
             <img id="panorama" src="/<?php echo $photo['file_path']; ?>">
@@ -222,6 +231,20 @@
             setTimeout(function() {
                 window.scrollTo(0, 1);
             }, 100);
+        });
+        
+        // 添加场景加载完成事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            var scene = document.querySelector('a-scene');
+            var loadingOverlay = document.getElementById('loading-overlay');
+            
+            if (scene.hasLoaded) {
+                loadingOverlay.style.display = 'none';
+            } else {
+                scene.addEventListener('loaded', function() {
+                    loadingOverlay.style.display = 'none';
+                });
+            }
         });
         
         // 添加键盘控制

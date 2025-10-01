@@ -24,6 +24,13 @@
                         <a href="/VrView/index/id/<?php echo $photo['id']; ?>" class="btn btn-primary">查看全景</a>
                         <button class="btn btn-outline-secondary btn-sm share-btn" data-id="<?php echo $photo['id']; ?>">分享</button>
                     </div>
+                    <?php if (!empty($photo['tags'])): ?>
+                    <div class="photo-tags" id="tags-<?php echo $photo['id']; ?>">
+                        <?php foreach ($photo['tags'] as $tag): ?>
+                        <span class="badge"><?php echo $tag; ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -32,7 +39,7 @@
         <!-- 分页 -->
         <div class="row">
             <div class="col-12">
-                <?php echo $photos->render(); ?>
+                {$page|raw}
             </div>
         </div>
     </div>
@@ -87,6 +94,24 @@
                         alert('请求失败，请重试');
                     }
                 });
+            });
+        });
+        
+        // 处理标签折叠
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理所有标签容器
+            document.querySelectorAll('.photo-tags').forEach(function(tagContainer) {
+                if (tagContainer.scrollHeight > 60) {
+                    // 添加展开/折叠功能
+                    const toggle = document.createElement('div');
+                    toggle.className = 'toggle-tags visible';
+                    toggle.textContent = '显示更多';
+                    toggle.onclick = function() {
+                        tagContainer.classList.toggle('expanded');
+                        this.textContent = tagContainer.classList.contains('expanded') ? '收起' : '显示更多';
+                    };
+                    tagContainer.parentNode.insertBefore(toggle, tagContainer.nextSibling);
+                }
             });
         });
     </script>

@@ -30,6 +30,27 @@ class Index extends BaseController
             ->limit(6)
             ->select()
             ->toArray();
+            
+        // 获取图片标签信息
+        foreach ($latestPhotos as &$photo) {
+            $tags = Db::name('tags')
+                ->alias('t')
+                ->join('vr_photo_tags pt', 't.id = pt.tag_id')
+                ->where('pt.photo_id', $photo['id'])
+                ->column('t.name');
+            $photo['tags'] = is_array($tags) ? $tags : [];
+        }
+        
+        foreach ($popularPhotos as &$photo) {
+            $tags = Db::name('tags')
+                ->alias('t')
+                ->join('vr_photo_tags pt', 't.id = pt.tag_id')
+                ->where('pt.photo_id', $photo['id'])
+                ->column('t.name');
+            $photo['tags'] = is_array($tags) ? $tags : [];
+        }
+
+
 
         return View::fetch('index', [
             'latestPhotos' => $latestPhotos,

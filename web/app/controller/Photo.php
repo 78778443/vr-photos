@@ -281,8 +281,18 @@ class Photo extends BaseController
             ->where('p.is_public', 1)
             ->order('p.created_at', 'desc')
             ->paginate(12);
-        
-        return View::fetch('photo/index', ['photos' => $photos]);
+
+        // 获取图片标签信息
+        $photoList = $photos->items();
+        foreach ($photoList as &$photo) {
+            $photo['tags'] = Db::name('tags')
+                ->alias('t')
+                ->join('vr_photo_tags pt', 't.id = pt.tag_id')
+                ->where('pt.photo_id', $photo['id'])
+                ->column('t.name');
+        }
+
+        return View::fetch('photo/index', ['photos' => $photoList,'page'=>$photos->render()]);
     }
     
     // 我的全景图片
