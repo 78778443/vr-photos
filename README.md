@@ -55,33 +55,13 @@ VR全景图片浏览系统是一个基于Web的360度全景图片展示和管理
 ### 系统要求
 - PHP 8.0+
 - Composer
-- SQLite扩展（或MySQL等数据库）
+- MySQL等数据库
 - GD或Imagick扩展（用于图片处理）
 
 ## 安装部署
 
-### 环境准备
-```bash
-# 确保已安装PHP 8.0+和Composer
-php -v
-composer -V
-```
+详细安装说明请查看 [安装文档](docs/INSTALL.md)
 
-### 安装步骤
-```bash
-# 克隆项目
-git clone <repository-url>
-cd web
-
-# 安装依赖
-composer install
-
-# 初始化数据库
-# 创建 database.db 文件并执行 database.sql 中的SQL语句
-
-# 配置Web服务器
-# 将网站根目录指向 public 目录
-```
 
 ### Web服务器配置
 #### Apache
